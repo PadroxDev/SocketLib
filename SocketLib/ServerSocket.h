@@ -1,5 +1,4 @@
 #pragma once
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include <vector>
 
 #include "BaseSocket.h"
@@ -15,11 +14,12 @@ namespace SocketLibrary {
 
 		void EventDispatcher(int fdEvent, SOCKET sender) override;
 		void HandleAccept(SOCKET sender);
+		void HandleWrite(SOCKET sender);
 		void HandleRead(SOCKET sender);
 		void HandleClose(SOCKET sender);
 
 	public:
-		ServerSocket(char* port);
+		ServerSocket(const char* port);
 		~ServerSocket();
 
 		bool Initialize() override;

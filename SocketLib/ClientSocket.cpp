@@ -1,11 +1,10 @@
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include "pch.h"
 #include "ClientSocket.h"
 
 #define DEFAULT_BUFLEN 512
 
 namespace SocketLibrary {
-	ClientSocket::ClientSocket(char* serverIpAddr, char* port) :
+	ClientSocket::ClientSocket(const char* serverIpAddr, const char* port) :
 		BaseSocket(port), _serverIpAddr(serverIpAddr)
 	{}
 
@@ -54,6 +53,12 @@ namespace SocketLibrary {
 
 	void ClientSocket::EventDispatcher(int fdEvent, SOCKET sender) {
 		switch (fdEvent) {
+		case FD_CONNECT:
+			HandleConnect(sender);
+			break;
+		case FD_WRITE:
+			HandleWrite(sender);
+			break;
 		case FD_READ:
 			HandleRead(sender);
 			break;
@@ -64,6 +69,14 @@ namespace SocketLibrary {
 			std::cout << "Event not found: " << fdEvent << std::endl;
 			break;
 		}
+	}
+
+	void ClientSocket::HandleConnect(SOCKET sender) {
+		std::cout << "CONNECT EVENT" << std::endl;
+	}
+
+	void ClientSocket::HandleWrite(SOCKET sender) {
+		std::cout << "WRITE EVENT" << std::endl;
 	}
 
 	void ClientSocket::HandleRead(SOCKET sender) {
@@ -83,9 +96,9 @@ namespace SocketLibrary {
 
 	bool ClientSocket::Initialize() {
 		if (!InitializeWinsock()
-			&& !CreateSocket() // Also connects
-			&& !CreateEventWindow()
-			&& !AssociateWithWindow(FD_READ | FD_CLOSE)) // Send the events here, MAY CAUSE TROUBLE with event triggers collection
+			|| !CreateSocket() // Also handle connect()
+			|| !CreateEventWindow(L"ClientEventWindow")
+			|| !AssociateWithWindow(FD_CONNECT | FD_READ | FD_WRITE | FD_CLOSE)) // Send the events here, MAY CAUSE TROUBLE with event triggers collection
 		{
 			Cleanup();
 			return false;
@@ -94,8 +107,8 @@ namespace SocketLibrary {
 		return true;
 	}
 
-	bool ClientSocket::Send(SOCKET to, const char* buffer) {
-		int iResult = send(to, buffer, strlen(buffer), 0);
+	bool ClientSocket::Send(const char* buffer) {
+		int iResult = send(_socket, buffer, strlen(buffer), 0);
 		if (iResult == SOCKET_ERROR) {
 			std::cout << "Sending buffer (" << buffer << ") failed with error: " << WSAGetLastError() << std::endl;
 			Cleanup();

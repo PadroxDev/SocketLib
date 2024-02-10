@@ -1,7 +1,7 @@
 #pragma once
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
 
 #include <winsock2.h>
+#pragma comment(lib, "ws2_32.lib")
 
 namespace SocketLibrary {
 	class BaseSocket
@@ -9,15 +9,15 @@ namespace SocketLibrary {
 	protected:
 		SOCKET _socket;
 		HWND _window;
-		char* _port;
+		const char* _port;
 
-		BaseSocket(char* port);
+		BaseSocket(const char* port);
 		~BaseSocket();
 
 		bool InitializeWinsock();
-		virtual bool CreateSocket() {};
+		virtual bool CreateSocket() { return false; };
 		
-		bool CreateEventWindow();
+		bool CreateEventWindow(const LPCWSTR className);
 		bool AssociateWithWindow(LONG events);
 
 		virtual void EventDispatcher(int fdEvent, SOCKET sender) {};

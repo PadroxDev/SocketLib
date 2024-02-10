@@ -6,10 +6,14 @@
 
 #ifndef PCH_H
 #define PCH_H
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
 
 // add headers that you want to pre-compile here
 #include <iostream>
 #include <WS2tcpip.h>
+#include <WinSock2.h>
+#include "SocketLib.h"
 #include "framework.h"
+#pragma comment(lib, "ws2_32.lib")
 
 #endif //PCH_H

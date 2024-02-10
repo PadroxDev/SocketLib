@@ -1,5 +1,3 @@
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
-
 #include <iostream>
 #include <stdlib.h>
 #include <ws2tcpip.h>
@@ -7,10 +5,8 @@
 #include "pch.h"
 #include "BaseSocket.h"
 
-const LPCWSTR className = L"EventWindowClass";
-
 namespace SocketLibrary {
-	BaseSocket::BaseSocket(char* port) : _socket(INVALID_SOCKET), _window(NULL), _port(port)
+	BaseSocket::BaseSocket(const char* port) : _socket(INVALID_SOCKET), _window(NULL), _port(port)
 	{}
 
 	BaseSocket::~BaseSocket() {
@@ -18,7 +14,7 @@ namespace SocketLibrary {
 	}
 
 	bool BaseSocket::Initialize() {
-
+		return false;
 	}
 
 	bool BaseSocket::InitializeWinsock() {
@@ -31,7 +27,7 @@ namespace SocketLibrary {
 		return true;
 	}
 
-	bool BaseSocket::CreateEventWindow() {
+	bool BaseSocket::CreateEventWindow(const LPCWSTR className) {
 
 		WNDCLASS windowClass = { 0 };
 		windowClass.lpfnWndProc = WindowProc;
@@ -66,6 +62,7 @@ namespace SocketLibrary {
 			std::cout << "WSAAsyncSelect failed with error: " <<  WSAGetLastError() << std::endl;
 			return false;
 		}
+		
 		return true;
 	}
 
@@ -75,10 +72,13 @@ namespace SocketLibrary {
 		switch (uMsg) {
 		case WM_USER + 1:
 		{
+			std::cout << "APAGNAN something is going on ? ? ?" << std::endl;
+
 			int fdEvent = WSAGETSELECTEVENT(lParam);
 			SOCKET sender = wParam;
 
 			socketHandler->EventDispatcher(fdEvent, sender);
+			break;
 		}
 		default:
 			return DefWindowProc(hwnd, uMsg, wParam, lParam);

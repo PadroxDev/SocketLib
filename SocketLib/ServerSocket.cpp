@@ -1,11 +1,10 @@
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include "pch.h"
 #include "ServerSocket.h"
 
 #define DEFAULT_BUFLEN 512
 
 namespace SocketLibrary {
-	ServerSocket::ServerSocket(char* port) : BaseSocket(port)
+	ServerSocket::ServerSocket(const char* port) : BaseSocket(port)
 	{}
 
 	ServerSocket::~ServerSocket()
@@ -58,9 +57,13 @@ namespace SocketLibrary {
 	}
 
 	void ServerSocket::EventDispatcher(int fdEvent, SOCKET sender) {
+		std::cout << "Dispatching an event of type " << fdEvent << std::endl;
 		switch (fdEvent) {
 		case FD_ACCEPT:
 			HandleAccept(sender);
+			break;
+		case FD_WRITE:
+			HandleWrite(sender);
 			break;
 		case FD_READ:
 			HandleRead(sender);
@@ -77,6 +80,7 @@ namespace SocketLibrary {
 	void ServerSocket::HandleAccept(SOCKET sender) {
 		SOCKET incomingSocket;
 		incomingSocket = accept(sender, NULL, NULL);
+		std::cout << "RECEIVING THE CLIENT" << std::endl;
 		if (incomingSocket == INVALID_SOCKET) {
 			Cleanup();
 			std::cout << "Error accepting an incomming socket !" << std::endl;
@@ -84,6 +88,10 @@ namespace SocketLibrary {
 		}
 		clients.push_back(incomingSocket);
 		WSAAsyncSelect(incomingSocket, _window, WM_USER + 1, FD_READ | FD_CLOSE);
+	}
+
+	void ServerSocket::HandleWrite(SOCKET sender) {
+		std::cout << "WRITE CALLED" << std::endl;
 	}
 
 	void ServerSocket::HandleRead(SOCKET sender) {
@@ -114,10 +122,10 @@ namespace SocketLibrary {
 
 	bool ServerSocket::Initialize() {
 		if (!InitializeWinsock()
-			&& !CreateSocket()
-			&& !StartListening()
-			&& !CreateEventWindow()
-			&& !AssociateWithWindow(FD_ACCEPT)) // Send the events here, MAY CAUSE TROUBLE with event triggers collection
+			|| !CreateSocket()
+			|| !StartListening()
+			|| !CreateEventWindow(L"ServerEventWindow")
+			|| !AssociateWithWindow(FD_ACCEPT | FD_READ | FD_WRITE | FD_CLOSE)) // Send the events here, MAY CAUSE TROUBLE with event triggers collection
 		{
 			Cleanup();
 			return false;
