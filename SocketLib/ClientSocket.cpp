@@ -110,7 +110,6 @@ namespace SocketLibrary {
 	bool ClientSocket::Send(const char* buffer) {
 		int iResult = send(_socket, buffer, strlen(buffer), 0);
 		if (iResult == SOCKET_ERROR) {
-			std::cout << "Sending buffer (" << buffer << ") failed with error: " << WSAGetLastError() << std::endl;
 			Cleanup();
 			return false;
 		}

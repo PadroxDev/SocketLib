@@ -24,6 +24,7 @@ namespace SocketLibrary {
 			std::cout << "WSAStartup failed: " << WSAGetLastError() << std::endl;
 			return false;
 		}
+
 		return true;
 	}
 
@@ -68,11 +69,11 @@ namespace SocketLibrary {
 
 	LRESULT CALLBACK BaseSocket::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 		BaseSocket* socketHandler = (BaseSocket*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-		
+
 		switch (uMsg) {
 		case WM_USER + 1:
 		{
-			std::cout << "APAGNAN something is going on ? ? ?" << std::endl;
+			std::cout << "Event caught" << std::endl;
 
 			int fdEvent = WSAGETSELECTEVENT(lParam);
 			SOCKET sender = wParam;
