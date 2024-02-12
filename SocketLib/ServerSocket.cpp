@@ -4,7 +4,10 @@
 #define DEFAULT_BUFLEN 512
 
 namespace SocketLibrary {
-	ServerSocket::ServerSocket(const char* port) : BaseSocket(port)
+	ServerSocket::ServerSocket(const char* port) : ServerSocket(port, nullptr)
+	{}
+
+	ServerSocket::ServerSocket(const char* port, EventListener* eListener) : BaseSocket(port, eListener)
 	{}
 
 	ServerSocket::~ServerSocket()
@@ -56,76 +59,12 @@ namespace SocketLibrary {
 		return true;
 	}
 
-	void ServerSocket::EventDispatcher(int fdEvent, SOCKET sender) {
-		std::cout << "Dispatching an event of type " << fdEvent << std::endl;
-		switch (fdEvent) {
-		case FD_ACCEPT:
-			HandleAccept(sender);
-			break;
-		case FD_WRITE:
-			HandleWrite(sender);
-			break;
-		case FD_READ:
-			HandleRead(sender);
-			break;
-		case FD_CLOSE:
-			HandleClose(sender);
-			break;
-		default:
-			std::cout << "Event not found: " << fdEvent << std::endl;
-			break;
-		}
-	}
-
-	void ServerSocket::HandleAccept(SOCKET sender) {
-		SOCKET incomingSocket;
-		incomingSocket = accept(sender, NULL, NULL);
-		std::cout << "RECEIVING THE CLIENT" << std::endl;
-		if (incomingSocket == INVALID_SOCKET) {
-			Cleanup();
-			std::cout << "Error accepting an incomming socket !" << std::endl;
-			return;
-		}
-		clients.push_back(incomingSocket);
-		WSAAsyncSelect(incomingSocket, _window, WM_USER + 1, FD_READ | FD_CLOSE);
-	}
-
-	void ServerSocket::HandleWrite(SOCKET sender) {
-		std::cout << "WRITE CALLED" << std::endl;
-	}
-
-	void ServerSocket::HandleRead(SOCKET sender) {
-		char recvbuf[DEFAULT_BUFLEN];
-		int bytesRead = recv(sender, recvbuf, DEFAULT_BUFLEN, 0);
-		if (bytesRead > 0) {
-			printf("%.*s\n", bytesRead, recvbuf);
-			
-			std::string msg(recvbuf, bytesRead);
-			std::cout << msg << std::endl;
-
-			// Echo back the received data
-			send(sender, recvbuf, bytesRead, 0);
-		}
-	}
-
-	void ServerSocket::HandleClose(SOCKET sender) {
-		std::cout << "Connection shutdown" << std::endl;
-		for (int i = clients.size() - 1; i >= 0; i--)
-		{
-			if (clients[i] == sender) {
-				clients.erase(clients.begin() + i);
-				break;
-			}
-		}
-		closesocket(sender);
-	}
-
 	bool ServerSocket::Initialize() {
 		if (!InitializeWinsock()
 			|| !CreateSocket()
 			|| !StartListening()
 			|| !CreateEventWindow(L"ServerEventWindow")
-			|| !AssociateWithWindow(FD_ACCEPT | FD_READ | FD_WRITE | FD_CLOSE)) // Send the events here, MAY CAUSE TROUBLE with event triggers collection
+			|| !AssociateWithWindow(FD_ACCEPT | FD_READ | FD_CLOSE)) // Send the events here, MAY CAUSE TROUBLE with event triggers collection
 		{
 			Cleanup();
 			return false;

@@ -1,13 +1,13 @@
-#include <iostream>
-#include <stdlib.h>
-#include <ws2tcpip.h>
-
 #include "pch.h"
 #include "BaseSocket.h"
 
 namespace SocketLibrary {
-	BaseSocket::BaseSocket(const char* port) : _socket(INVALID_SOCKET), _window(NULL), _port(port)
+	BaseSocket::BaseSocket(const char* port) : BaseSocket(port, nullptr)
 	{}
+
+	BaseSocket::BaseSocket(const char* port, EventListener* eListener) : _socket(INVALID_SOCKET), _window(NULL),
+		_port(port), _eListener(eListener) {
+	}
 
 	BaseSocket::~BaseSocket() {
 		Cleanup();
@@ -29,11 +29,11 @@ namespace SocketLibrary {
 	}
 
 	bool BaseSocket::CreateEventWindow(const LPCWSTR className) {
-
 		WNDCLASS windowClass = { 0 };
 		windowClass.lpfnWndProc = WindowProc;
 		windowClass.hInstance = GetModuleHandle(NULL);
 		windowClass.lpszClassName = className;
+
 
 		if (windowClass.hInstance == NULL) {
 			std::cout << "Getting module handle failed with error : " << GetLastError() << std::endl;
@@ -50,7 +50,6 @@ namespace SocketLibrary {
 			std::cout << "Creating window failed with error: " << GetLastError() << ::std::endl;
 			return false;
 		}
-
 		return true;
 	}
 
@@ -67,14 +66,36 @@ namespace SocketLibrary {
 		return true;
 	}
 
+	void BaseSocket::EventDispatcher(int fdEvent, SOCKET sender) {
+		if (_eListener == nullptr) {
+			std::cout << "You must assign an EventListener if you want to be able to read received event !" << std::endl;
+			return;
+		}
+
+		switch (fdEvent) {
+		case FD_ACCEPT:
+			_eListener->HandleAccept(sender);
+			break;
+		case FD_READ:
+			_eListener->HandleRead(sender);
+			break;
+		case FD_CLOSE:
+			_eListener->HandleClose(sender);
+			break;
+		default:
+			std::cout << "Event not found: " << fdEvent << std::endl;
+			break;
+		}
+	}
+
 	LRESULT CALLBACK BaseSocket::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 		BaseSocket* socketHandler = (BaseSocket*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+
+		//std::cout << socketHandler->_port << std::endl;
 
 		switch (uMsg) {
 		case WM_USER + 1:
 		{
-			std::cout << "Event caught" << std::endl;
-
 			int fdEvent = WSAGETSELECTEVENT(lParam);
 			SOCKET sender = wParam;
 

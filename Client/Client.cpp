@@ -3,11 +3,20 @@
 
 int main()
 {
-	SocketLibrary::ClientSocket sock("10.1.170.20", "21");
+	SocketLibrary::ClientSocket sock("10.1.144.30", "21");
 	SYSTEMTIME st;
 	GetSystemTime(&st);
 	WORD start = st.wSecond;
 
-	do { GetSystemTime(&st);} while ((st.wSecond - start) < 3);
 	std::cout << (sock.Initialize() ? "Client Initialization SUCCESSFUL" : "Client failed to initialize :c") << std::endl;
+	sock.Send("test");
+
+	MSG msg;
+	while (GetMessage(&msg, 0, 0, 0))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	return 0;
 }

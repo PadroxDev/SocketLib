@@ -12,14 +12,9 @@ namespace SocketLibrary {
 		bool CreateSocket() override;
 		bool StartListening();
 
-		void EventDispatcher(int fdEvent, SOCKET sender) override;
-		void HandleAccept(SOCKET sender);
-		void HandleWrite(SOCKET sender);
-		void HandleRead(SOCKET sender);
-		void HandleClose(SOCKET sender);
-
 	public:
 		ServerSocket(const char* port);
+		ServerSocket(const char* port, EventListener* eListener);
 		~ServerSocket();
 
 		bool Initialize() override;

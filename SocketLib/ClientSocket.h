@@ -9,15 +9,10 @@ namespace SocketLibrary {
 		const char* _serverIpAddr;
 
 		bool CreateSocket() override;
-		
-		void EventDispatcher(int fdEvent, SOCKET sender) override;
-		void HandleConnect(SOCKET sender);
-		void HandleWrite(SOCKET sender);
-		void HandleRead(SOCKET sender);
-		void HandleClose(SOCKET sender);
 
 	public:
 		ClientSocket(const char* serverIpAddr, const char* port);
+		ClientSocket(const char* serverIpAddr, const char* port, EventListener* eListener);
 		~ClientSocket();
 
 		bool Initialize() override;
