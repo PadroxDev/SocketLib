@@ -1,5 +1,6 @@
 #pragma once
 
+#define NOMINMAX
 #include "BaseSocket.h"
 
 namespace SocketLibrary {

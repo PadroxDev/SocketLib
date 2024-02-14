@@ -1,3 +1,4 @@
+#define NOMINMAX
 #include "pch.h"
 #include "ServerSocket.h"
 

@@ -7,6 +7,7 @@
 #ifndef PCH_H
 #define PCH_H
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
+#define NOMINMAX
 
 #include <iostream>
 #include <WS2tcpip.h>
